@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Service } from '@/data/services';
 import { usePlanStore } from '@/hooks/usePlanStore';
-import { Check, Plus, Minus, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { Check, Plus, Minus, ChevronDown, ChevronUp, Star, LayoutGrid } from 'lucide-react';
+import ComparisonModal from './ComparisonModal';
 
 interface ServiceCardProps {
   service: Service;
@@ -13,6 +14,7 @@ interface ServiceCardProps {
 export default function ServiceCard({ service }: ServiceCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedTier, setSelectedTier] = useState<'essential' | 'pro' | 'enterprise'>('pro');
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
   const { addItem, removeItem, isServiceInPlan, getItemByServiceId, toggleAddOn } = usePlanStore();
 
@@ -134,6 +136,15 @@ export default function ServiceCard({ service }: ServiceCardProps) {
         </motion.button>
 
         <button
+          onClick={() => setIsComparisonOpen(true)}
+          className="px-4 py-3 rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent-purple)] hover:text-white transition-all flex items-center gap-2"
+          title="Compare Plans"
+        >
+          <LayoutGrid className="w-5 h-5" />
+          <span className="hidden sm:inline text-sm">Compare</span>
+        </button>
+
+        <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="px-4 py-3 rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent-purple)] hover:text-white transition-all"
         >
@@ -218,6 +229,13 @@ export default function ServiceCard({ service }: ServiceCardProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Comparison Modal */}
+      <ComparisonModal
+        service={service}
+        isOpen={isComparisonOpen}
+        onClose={() => setIsComparisonOpen(false)}
+      />
     </motion.div>
   );
 }
