@@ -88,7 +88,8 @@ export default function ServiceCard({ service, isExpanded, onToggleExpand }: Ser
                   POPULAR
                 </div>
               )}
-              <div className="text-xs font-medium mb-1">{tier.name}</div>
+              <div className="text-sm font-semibold mb-1">{tier.name}</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-wide">starting at</div>
               <div className="text-lg font-bold">${tier.price.toLocaleString()}</div>
             </button>
           );

@@ -105,8 +105,9 @@ export default function ComparisonModal({ service, isOpen, onClose }: Comparison
                             MOST POPULAR
                           </span>
                         )}
-                        <h3 className="text-lg font-bold text-white">{tier.name}</h3>
-                        <div className="text-2xl font-bold text-white mt-1">
+                        <h3 className="text-xl font-bold text-white">{tier.name}</h3>
+                        <div className="text-[10px] text-white/60 uppercase tracking-wide mt-1">starting at</div>
+                        <div className="text-2xl font-bold text-white">
                           ${tier.price.toLocaleString()}
                         </div>
                         <p className="text-xs text-white/70 mt-2 line-clamp-2">{tier.bestFor}</p>
