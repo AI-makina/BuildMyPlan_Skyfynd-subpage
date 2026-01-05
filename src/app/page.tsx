@@ -13,6 +13,7 @@ import { Sparkles, ArrowRight, Tag } from 'lucide-react';
 export default function BuildMyPlan() {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isQuoteFormOpen, setIsQuoteFormOpen] = useState(false);
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
 
   const { itemCount, discountPercentage, total } = usePlanStore();
 
@@ -107,10 +108,17 @@ export default function BuildMyPlan() {
           <div className="lg:col-span-2">
             <motion.div
               layout
-              className="grid md:grid-cols-2 gap-6"
+              className="grid md:grid-cols-2 gap-6 items-start"
             >
               {filteredServices.map((service) => (
-                <ServiceCard key={service.id} service={service} />
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  isExpanded={expandedServiceId === service.id}
+                  onToggleExpand={() => setExpandedServiceId(
+                    expandedServiceId === service.id ? null : service.id
+                  )}
+                />
               ))}
             </motion.div>
           </div>

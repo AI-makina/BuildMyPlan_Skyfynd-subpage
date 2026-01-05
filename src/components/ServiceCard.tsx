@@ -9,10 +9,11 @@ import ComparisonModal from './ComparisonModal';
 
 interface ServiceCardProps {
   service: Service;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
-export default function ServiceCard({ service }: ServiceCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+export default function ServiceCard({ service, isExpanded, onToggleExpand }: ServiceCardProps) {
   const [selectedTier, setSelectedTier] = useState<'essential' | 'pro' | 'enterprise'>('pro');
   const [isComparisonOpen, setIsComparisonOpen] = useState(false);
 
@@ -145,7 +146,7 @@ export default function ServiceCard({ service }: ServiceCardProps) {
         </button>
 
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={onToggleExpand}
           className="px-4 py-3 rounded-lg border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent-purple)] hover:text-white transition-all"
         >
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
