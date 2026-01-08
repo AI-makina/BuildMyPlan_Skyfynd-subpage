@@ -1,0 +1,126 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { usePaidMediaBuilderStore } from '@/hooks/usePaidMediaBuilderStore';
+import { addOnOptions } from '@/data/paidMediaBuilder';
+import { Check, HelpCircle, Plus } from 'lucide-react';
+import { useState } from 'react';
+
+export default function Step9AddOns() {
+  const { selectedAddOns, toggleAddOn } = usePaidMediaBuilderStore();
+  const [tooltipOpen, setTooltipOpen] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-white mb-2">Enhance your campaign with add-ons</h2>
+        <p className="text-[var(--text-secondary)]">
+          Select any additional services to maximize your campaign performance.
+          <span className="text-[var(--text-muted)] ml-1">(Select multiple)</span>
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {addOnOptions.map((option) => {
+          const isSelected = selectedAddOns.some((addon) => addon.id === option.id);
+
+          return (
+            <div key={option.id} className="relative">
+              <motion.button
+                onClick={() => toggleAddOn(option.id)}
+                className={`
+                  w-full p-4 rounded-xl text-left transition-all group
+                  ${isSelected
+                    ? 'bg-gradient-to-br from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border-2 border-[var(--accent-purple)]'
+                    : 'bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--accent-purple)]/50'
+                  }
+                `}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span className={`font-medium ${isSelected ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-white'}`}>
+                    {option.label}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {isSelected ? (
+                      <div className="w-5 h-5 rounded-full bg-[var(--accent-purple)] flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border border-[var(--border-subtle)] flex items-center justify-center group-hover:border-[var(--accent-purple)]/50">
+                        <Plus className="w-3 h-3 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      </div>
+                    )}
+                    <span
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--accent-purple)] transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTooltipOpen(tooltipOpen === option.id ? null : option.id);
+                      }}
+                    >
+                      <HelpCircle className="w-5 h-5" />
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-lg font-semibold gradient-text">
+                  +${option.price}
+                  {option.recurring === 'monthly' ? (
+                    <span className="text-sm text-[var(--text-muted)] font-normal">/mo</span>
+                  ) : (
+                    <span className="text-sm text-[var(--text-muted)] font-normal ml-1">one-time</span>
+                  )}
+                </div>
+              </motion.button>
+
+              {/* Tooltip - Outside the button */}
+              {tooltipOpen === option.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute right-0 top-full mt-2 z-50 w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg shadow-xl"
+                >
+                  <button
+                    onClick={() => setTooltipOpen(null)}
+                    className="absolute top-2 right-2 text-[var(--text-muted)] hover:text-white text-xl leading-none"
+                  >
+                    &times;
+                  </button>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-[var(--accent-purple)] font-medium">What it is:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.whatItIs}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--accent-pink)] font-medium">Ideal if:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.idealIf}</p>
+                    </div>
+                    {option.tooltip.examples && (
+                      <div>
+                        <span className="text-[var(--accent-orange)] font-medium">Examples:</span>
+                        <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.examples}</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {selectedAddOns.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg"
+        >
+          <p className="text-sm text-[var(--text-secondary)]">
+            <span className="text-white font-medium">{selectedAddOns.length} add-on{selectedAddOns.length > 1 ? 's' : ''}</span> selected
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}

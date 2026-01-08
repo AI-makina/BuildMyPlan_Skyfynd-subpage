@@ -1,0 +1,126 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { useImageBuilderStore } from '@/hooks/useImageBuilderStore';
+import { creationMethodOptions } from '@/data/imageBuilder';
+import { Check, HelpCircle, Sparkles, ImageIcon, Palette, Layers, Pencil, Camera } from 'lucide-react';
+import { useState } from 'react';
+
+const iconMap: Record<string, React.ElementType> = {
+  ai: Sparkles,
+  stock: ImageIcon,
+  design: Palette,
+  compositing: Layers,
+  illustration: Pencil,
+  photography: Camera,
+};
+
+export default function Step4CreationMethod() {
+  const { creation, setCreation } = useImageBuilderStore();
+  const [tooltipOpen, setTooltipOpen] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-white mb-2">How should the images be created?</h2>
+        <p className="text-[var(--text-secondary)]">
+          Select the creation method that best suits your needs and budget.
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {creationMethodOptions.map((option) => {
+          const isSelected = creation === option.id;
+          const Icon = iconMap[option.id] || ImageIcon;
+
+          return (
+            <div key={option.id} className="relative">
+              <motion.button
+                onClick={() => setCreation(option.id)}
+                className={`
+                  w-full p-4 rounded-xl text-left transition-all group
+                  ${isSelected
+                    ? 'bg-gradient-to-br from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border-2 border-[var(--accent-purple)]'
+                    : 'bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--accent-purple)]/50'
+                  }
+                `}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`
+                      p-2 rounded-lg
+                      ${isSelected
+                        ? 'bg-[var(--accent-purple)]/30'
+                        : 'bg-[var(--bg-secondary)]'
+                      }
+                    `}>
+                      <Icon className={`w-5 h-5 ${isSelected ? 'text-[var(--accent-purple)]' : 'text-[var(--text-secondary)]'}`} />
+                    </div>
+                    <span className={`font-medium ${isSelected ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-white'}`}>
+                      {option.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-[var(--accent-purple)] flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    <span
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--accent-purple)] transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTooltipOpen(tooltipOpen === option.id ? null : option.id);
+                      }}
+                    >
+                      <HelpCircle className="w-5 h-5" />
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {option.startsAt && (
+                    <span className="text-xs text-[var(--text-muted)]">Starting at</span>
+                  )}
+                  <span className="text-xl font-bold gradient-text">${option.price}</span>
+                </div>
+              </motion.button>
+
+              {/* Tooltip - Outside the button */}
+              {tooltipOpen === option.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute right-0 top-full mt-2 z-50 w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg shadow-xl"
+                >
+                  <button
+                    onClick={() => setTooltipOpen(null)}
+                    className="absolute top-2 right-2 text-[var(--text-muted)] hover:text-white text-xl leading-none"
+                  >
+                    &times;
+                  </button>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-[var(--accent-purple)] font-medium">What it is:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.whatItIs}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--accent-pink)] font-medium">Ideal if:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.idealIf}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--accent-orange)] font-medium">Examples:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.examples}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlanStore } from '@/hooks/usePlanStore';
 import { getServiceById } from '@/data/services';
-import { ShoppingCart, Trash2, Tag, X, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Trash2, Tag, X, ChevronRight, Sparkles } from 'lucide-react';
 
 interface PlanSummaryProps {
   onRequestQuote: () => void;
@@ -22,14 +22,23 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
 
   if (itemCount === 0) {
     return (
-      <div className="card p-6 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center">
-          <ShoppingCart className="w-8 h-8 text-[var(--text-muted)]" />
+      <div className="relative overflow-hidden rounded-2xl p-8 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)]/50 border border-[var(--border-subtle)]">
+        {/* Subtle ambient glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-purple)]/5 to-transparent pointer-events-none" />
+
+        <div className="relative text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[var(--bg-secondary)] to-[var(--bg-elevated)] flex items-center justify-center border border-[var(--border-subtle)]">
+            <ShoppingCart className="w-9 h-9 text-[var(--text-muted)]" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-3 font-serif">Your Plan is Empty</h3>
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6">
+            Browse our services and add them to build your custom plan.
+          </p>
+          <div className="flex items-center justify-center gap-2 text-xs text-[var(--text-muted)]">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--accent-purple)]" />
+            <span>Bundle 3+ services for discounts</span>
+          </div>
         </div>
-        <h3 className="text-lg font-semibold text-white mb-2">Your Plan is Empty</h3>
-        <p className="text-[var(--text-secondary)] text-sm">
-          Browse our services and add them to build your custom plan.
-        </p>
       </div>
     );
   }
@@ -37,36 +46,40 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
   return (
     <motion.div
       layout
-      className="card p-6 sticky top-6"
+      className="relative overflow-hidden rounded-2xl p-6 lg:p-7 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)]/50 border border-[var(--border-subtle)]"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-white font-serif flex items-center gap-2">
+        <h3 className="text-xl font-semibold text-white font-serif flex items-center gap-2.5">
           <ShoppingCart className="w-5 h-5 text-[var(--accent-purple)]" />
           Your Plan
         </h3>
-        <span className="px-3 py-1 bg-[var(--accent-orange)] text-black text-sm font-medium rounded-full">
+        <span className="px-3 py-1.5 bg-gradient-to-r from-[var(--accent-orange)] to-[var(--accent-gold)] text-[#09090b] text-xs font-semibold rounded-full">
           {itemCount} {itemCount === 1 ? 'service' : 'services'}
         </span>
       </div>
 
-      {/* Discount Badge */}
+      {/* Discount Badge - Refined */}
       {discountPercentage > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 p-3 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 rounded-lg border border-[var(--accent-purple)]/30"
+          className="mb-5 p-4 bg-gradient-to-r from-[var(--accent-purple)]/10 to-[var(--accent-pink)]/10 rounded-xl border border-[var(--accent-purple)]/20"
         >
-          <div className="flex items-center gap-2 text-sm">
-            <Tag className="w-4 h-4 text-[var(--accent-purple)]" />
-            <span className="text-white font-medium">Bundle Discount Applied!</span>
-            <span className="ml-auto text-[var(--accent-orange)] font-bold">{discountPercentage}% OFF</span>
+          <div className="flex items-center gap-3 text-sm">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-purple)]/20 flex items-center justify-center">
+              <Tag className="w-4 h-4 text-[var(--accent-purple)]" />
+            </div>
+            <div className="flex-1">
+              <span className="text-white font-medium">Bundle Discount Applied</span>
+            </div>
+            <span className="text-[var(--accent-orange)] font-bold">{discountPercentage}% OFF</span>
           </div>
         </motion.div>
       )}
 
-      {/* Items List */}
-      <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto pr-2">
+      {/* Items List - Refined */}
+      <div className="space-y-2.5 mb-6 max-h-[280px] overflow-y-auto pr-1 -mr-1">
         <AnimatePresence mode="popLayout">
           {items.map((item) => {
             const service = getServiceById(item.serviceId);
@@ -80,21 +93,21 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg group"
+                className="flex items-start gap-3 p-3.5 bg-[var(--bg-secondary)]/50 rounded-xl group border border-transparent hover:border-[var(--border-subtle)] transition-all duration-300"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="text-white font-medium text-sm truncate">{service.name}</h4>
-                    <span className="px-2 py-0.5 bg-[var(--bg-card)] text-[var(--text-muted)] text-xs rounded">
+                    <span className="px-2 py-0.5 bg-[var(--bg-card)] text-[var(--text-muted)] text-[10px] rounded-md border border-[var(--border-subtle)]">
                       {tier?.name}
                     </span>
                   </div>
                   {item.addOns.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {item.addOns.map(addOnId => {
                         const addOn = service.addOns.find(a => a.id === addOnId);
                         return addOn ? (
-                          <span key={addOnId} className="text-xs text-[var(--accent-purple)]">
+                          <span key={addOnId} className="text-[10px] text-[var(--accent-purple)] bg-[var(--accent-purple)]/10 px-2 py-0.5 rounded-md">
                             +{addOn.name}
                           </span>
                         ) : null;
@@ -102,11 +115,11 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
                     </div>
                   )}
                 </div>
-                <div className="text-right flex items-center gap-2">
-                  <span className="text-white font-medium">${item.subtotal.toLocaleString()}</span>
+                <div className="text-right flex items-center gap-2.5">
+                  <span className="text-white font-semibold">${item.subtotal.toLocaleString()}</span>
                   <button
                     onClick={() => removeItem(item.serviceId)}
-                    className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded transition-all opacity-0 group-hover:opacity-100"
+                    className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -117,8 +130,8 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
         </AnimatePresence>
       </div>
 
-      {/* Pricing Breakdown */}
-      <div className="space-y-3 py-4 border-t border-[var(--border-subtle)]">
+      {/* Pricing Breakdown - Refined */}
+      <div className="space-y-3 py-5 border-t border-[var(--border-subtle)]">
         <div className="flex justify-between text-sm">
           <span className="text-[var(--text-secondary)]">Subtotal</span>
           <span className="text-white">${subtotal.toLocaleString()}</span>
@@ -129,39 +142,39 @@ export default function PlanSummary({ onRequestQuote }: PlanSummaryProps) {
             <span className="text-[var(--accent-purple)]">-${discount.toLocaleString()}</span>
           </div>
         )}
-        <div className="flex justify-between text-lg font-bold pt-3 border-t border-[var(--border-subtle)]">
+        <div className="flex justify-between text-lg font-bold pt-4 border-t border-[var(--border-subtle)]">
           <span className="text-white">Total</span>
           <span className="gradient-text">${total.toLocaleString()}</span>
         </div>
       </div>
 
-      {/* Next Steps Hint */}
+      {/* Next Steps Hint - Refined */}
       {itemCount >= 3 && itemCount < 5 && (
-        <p className="text-xs text-[var(--text-muted)] mb-4 text-center">
-          Add {5 - itemCount} more {5 - itemCount === 1 ? 'service' : 'services'} for 15% off!
+        <p className="text-xs text-[var(--text-muted)] mb-5 text-center py-2 px-3 bg-[var(--bg-secondary)]/30 rounded-lg">
+          Add {5 - itemCount} more {5 - itemCount === 1 ? 'service' : 'services'} for 15% off
         </p>
       )}
       {itemCount >= 5 && itemCount < 7 && (
-        <p className="text-xs text-[var(--text-muted)] mb-4 text-center">
-          Add {7 - itemCount} more {7 - itemCount === 1 ? 'service' : 'services'} for 20% off!
+        <p className="text-xs text-[var(--text-muted)] mb-5 text-center py-2 px-3 bg-[var(--bg-secondary)]/30 rounded-lg">
+          Add {7 - itemCount} more {7 - itemCount === 1 ? 'service' : 'services'} for 20% off
         </p>
       )}
 
-      {/* CTA Button */}
+      {/* CTA Button - Refined */}
       <motion.button
         onClick={onRequestQuote}
-        className="w-full btn-primary flex items-center justify-center gap-2"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        className="w-full btn-primary flex items-center justify-center gap-2 py-4"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
       >
         Request Quote
         <ChevronRight className="w-4 h-4" />
       </motion.button>
 
-      {/* Clear Plan */}
+      {/* Clear Plan - Subtle */}
       <button
         onClick={() => usePlanStore.getState().clearPlan()}
-        className="w-full mt-3 py-2 text-sm text-[var(--text-muted)] hover:text-red-400 transition-colors flex items-center justify-center gap-2"
+        className="w-full mt-4 py-2.5 text-sm text-[var(--text-muted)] hover:text-red-400 transition-colors flex items-center justify-center gap-2 rounded-lg hover:bg-red-500/5"
       >
         <Trash2 className="w-4 h-4" />
         Clear Plan

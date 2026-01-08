@@ -23,7 +23,7 @@ export default function CategoryTabs({
   onCategoryChange,
 }: CategoryTabsProps) {
   return (
-    <div className="flex flex-wrap gap-3 justify-center mb-8">
+    <div className="flex flex-wrap gap-2 justify-center mb-10">
       {categories.map((category) => {
         const isActive = category.id === activeCategory;
         return (
@@ -31,25 +31,27 @@ export default function CategoryTabs({
             key={category.id}
             onClick={() => onCategoryChange(category.id)}
             className={`
-              relative flex items-center gap-2 px-5 py-3 rounded-full
-              font-medium text-sm transition-all duration-300
+              relative flex items-center gap-2.5 px-6 py-3.5 rounded-full
+              font-medium text-sm transition-all duration-400
               ${isActive
-                ? 'bg-[var(--accent-orange)] text-black'
-                : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:border-[var(--accent-purple)] hover:text-white'
+                ? 'text-[#09090b]'
+                : 'bg-transparent text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-card)]/60'
               }
             `}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: isActive ? 1 : 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {categoryIcons[category.id]}
-            <span>{category.name}</span>
             {isActive && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 bg-[var(--accent-orange)] rounded-full -z-10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                className="absolute inset-0 bg-gradient-to-r from-[var(--accent-orange)] to-[var(--accent-gold)] rounded-full"
+                transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
               />
             )}
+            <span className={`relative z-10 ${isActive ? 'text-[#09090b]' : ''}`}>
+              {categoryIcons[category.id]}
+            </span>
+            <span className="relative z-10">{category.name}</span>
           </motion.button>
         );
       })}

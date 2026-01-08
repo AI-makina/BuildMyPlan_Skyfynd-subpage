@@ -1,0 +1,136 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { usePaidMediaBuilderStore } from '@/hooks/usePaidMediaBuilderStore';
+import { campaignTypeOptions } from '@/data/paidMediaBuilder';
+import { Check, HelpCircle, Search, Users, Layout, Video, RefreshCw, UserPlus, ShoppingCart, Smartphone, Layers, MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
+
+const iconMap: Record<string, React.ElementType> = {
+  'search': Search,
+  'social': Users,
+  'display': Layout,
+  'video': Video,
+  'retargeting': RefreshCw,
+  'lead-gen': UserPlus,
+  'ecommerce': ShoppingCart,
+  'app-install': Smartphone,
+  'full-funnel': Layers,
+  'other': MoreHorizontal,
+};
+
+export default function Step1CampaignType() {
+  const { campaignType, setCampaignType } = usePaidMediaBuilderStore();
+  const [tooltipOpen, setTooltipOpen] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-white mb-2">What type of campaign are you planning?</h2>
+        <p className="text-[var(--text-secondary)]">
+          Select the campaign type that best describes your goals. This helps us recommend the right options.
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {campaignTypeOptions.map((option) => {
+          const isSelected = campaignType === option.id;
+          const Icon = iconMap[option.id] || Search;
+
+          return (
+            <div key={option.id} className="relative">
+              <motion.button
+                onClick={() => setCampaignType(option.id)}
+                className={`
+                  w-full p-4 rounded-xl text-left transition-all group
+                  ${isSelected
+                    ? 'bg-gradient-to-br from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border-2 border-[var(--accent-purple)]'
+                    : 'bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--accent-purple)]/50'
+                  }
+                `}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`
+                      p-2 rounded-lg
+                      ${isSelected
+                        ? 'bg-[var(--accent-purple)]/30'
+                        : 'bg-[var(--bg-secondary)]'
+                      }
+                    `}>
+                      <Icon className={`w-5 h-5 ${isSelected ? 'text-[var(--accent-purple)]' : 'text-[var(--text-secondary)]'}`} />
+                    </div>
+                    <span className={`font-medium ${isSelected ? 'text-white' : 'text-[var(--text-secondary)] group-hover:text-white'}`}>
+                      {option.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-[var(--accent-purple)] flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    <span
+                      className="p-1 text-[var(--text-muted)] hover:text-[var(--accent-purple)] transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTooltipOpen(tooltipOpen === option.id ? null : option.id);
+                      }}
+                    >
+                      <HelpCircle className="w-5 h-5" />
+                    </span>
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Tooltip - Outside the button */}
+              {tooltipOpen === option.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute right-0 top-full mt-2 z-50 w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg shadow-xl"
+                >
+                  <button
+                    onClick={() => setTooltipOpen(null)}
+                    className="absolute top-2 right-2 text-[var(--text-muted)] hover:text-white text-xl leading-none"
+                  >
+                    &times;
+                  </button>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <span className="text-[var(--accent-purple)] font-medium">What it is:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.whatItIs}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--accent-pink)] font-medium">Ideal if:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.idealIf}</p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--accent-orange)] font-medium">Examples:</span>
+                      <p className="text-[var(--text-secondary)] mt-1">{option.tooltip.examples}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {campaignType && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-[var(--accent-purple)]/10 border border-[var(--accent-purple)]/30 rounded-lg"
+        >
+          <p className="text-sm text-[var(--text-secondary)]">
+            Based on your selection, we&apos;ve pre-selected recommended options for the next steps. You can adjust these at any time.
+          </p>
+        </motion.div>
+      )}
+    </div>
+  );
+}
