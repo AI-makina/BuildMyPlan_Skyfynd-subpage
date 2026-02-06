@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { categories, getServicesByCategory } from '@/data/services';
 import { usePlanStore } from '@/hooks/usePlanStore';
-import { useUnifiedQuoteStore, serviceMetadata } from '@/hooks/useUnifiedQuoteStore';
+import { useUnifiedQuoteStore, serviceMetadata, ConfiguredService } from '@/hooks/useUnifiedQuoteStore';
 import CategoryTabs from '@/components/CategoryTabs';
 import ServiceCard from '@/components/ServiceCard';
 import PlanSummary from '@/components/PlanSummary';
@@ -16,13 +16,29 @@ export default function BuildMyPlan() {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isQuoteFormOpen, setIsQuoteFormOpen] = useState(false);
   const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const { itemCount, discountPercentage, total } = usePlanStore();
-  const { getAllConfiguredServices } = useUnifiedQuoteStore();
+  const unifiedStore = useUnifiedQuoteStore();
 
-  const configuredServices = getAllConfiguredServices();
+  // Wait for Zustand persist to finish hydrating from localStorage
+  useEffect(() => {
+    // Check if already hydrated
+    if (useUnifiedQuoteStore.persist.hasHydrated()) {
+      setIsHydrated(true);
+    } else {
+      // Subscribe to hydration completion
+      const unsubscribe = useUnifiedQuoteStore.persist.onFinishHydration(() => {
+        setIsHydrated(true);
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  // Get configured services reactively - only after hydration
+  const configuredServices = isHydrated ? unifiedStore.getAllConfiguredServices() : [];
   const hasConfiguredServices = configuredServices.length > 0;
-  const firstConfiguredService = configuredServices[0];
+  const firstConfiguredService = configuredServices[0] as ConfiguredService | undefined;
 
   const filteredServices = useMemo(() => {
     return getServicesByCategory(activeCategory);

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useMessagingCopywritingBuilderStore } from '@/hooks/useMessagingCopywritingBuilderStore';
 import { useUnifiedQuoteStore, serviceMetadata, WebsiteConfig, AppConfig, AnimationConfig, ImageConfig, SoundConfig, PaidMediaConfig, SocialMediaConfig, EmailMarketingConfig, VisualIdentityConfig, BrandApplicationsConfig, BrandStrategyConfig, ContentStrategyConfig } from '@/hooks/useUnifiedQuoteStore';
 import {
@@ -225,200 +224,192 @@ export default function Step13Summary({ showQuoteForm = false, onCloseQuoteForm 
           </div>
         </div>
 
-        <AnimatePresence>
-          {expandedCard === 'messaging-copywriting' && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-4 mt-6">
-                {/* ONE-TIME COSTS Section */}
-                <div className="p-4 bg-[var(--bg-card)] rounded-lg border border-[var(--border-subtle)]">
-                  <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[var(--accent-purple)]" />
-                    ONE-TIME COSTS
-                  </h3>
+        <div className={`grid transition-all duration-300 ease-in-out ${expandedCard === 'messaging-copywriting' ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+          <div className="overflow-hidden">
+            <div className="space-y-4 mt-6">
+              {/* ONE-TIME COSTS Section */}
+              <div className="p-4 bg-[var(--bg-card)] rounded-lg border border-[var(--border-subtle)]">
+                <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[var(--accent-purple)]" />
+                  ONE-TIME COSTS
+                </h3>
 
-                  {/* Messaging Foundation */}
-                  <div className="space-y-3 mb-4">
-                    <h4 className="text-sm font-medium text-[var(--accent-purple)] uppercase tracking-wide">
-                      Messaging Foundation
-                    </h4>
+                {/* Messaging Foundation */}
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-sm font-medium text-[var(--accent-purple)] uppercase tracking-wide">
+                    Messaging Foundation
+                  </h4>
 
-                    <SummarySection title="Messaging Framework" icon={<MessageSquare className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={2}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{messagingLabel}</span>
-                        {formatPrice(store.messagingPrice, messagingStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="Brand Voice & Tone" icon={<Mic className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={3}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{voiceLabel}</span>
-                        {formatPrice(store.voicePrice, voiceStartsAt)}
-                      </div>
-                    </SummarySection>
-                  </div>
-
-                  {/* Copy Production */}
-                  <div className="space-y-3 mb-4">
-                    <h4 className="text-sm font-medium text-[var(--accent-purple)] uppercase tracking-wide">
-                      Copy Production
-                    </h4>
-
-                    <SummarySection title="Website Copy" icon={<Globe className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={4}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{websiteLabel}</span>
-                        {formatPrice(store.websitePrice, websiteStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="Marketing & Advertising Copy" icon={<Megaphone className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={5}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{marketingLabel}</span>
-                        {formatPrice(store.marketingPrice, marketingStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="Sales Enablement Copy" icon={<Target className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={6}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{salesLabel}</span>
-                        {formatPrice(store.salesPrice, salesStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="Product Copy" icon={<ShoppingBag className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={7}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{productLabel}</span>
-                        {formatPrice(store.productPrice, productStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="Content Writing" icon={<BookOpen className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={8}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{contentLabel}</span>
-                        {formatPrice(store.contentPrice, contentStartsAt)}
-                      </div>
-                    </SummarySection>
-
-                    <SummarySection title="UX Writing" icon={<Layout className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={9}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{uxLabel}</span>
-                        {formatPrice(store.uxPrice, uxStartsAt)}
-                      </div>
-                    </SummarySection>
-                  </div>
-
-                  {/* Add-ons */}
-                  <SummarySection title="Add-on Services" icon={<Sparkles className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={11}>
-                    {store.selectedAddOns.length === 0 ? (
-                      <p className="text-[var(--text-muted)] text-sm">No add-ons selected</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {store.selectedAddOns.map((addOn) => {
-                          const addOnData = addOnServices.find((a) => a.id === addOn.id);
-                          return (
-                            <div key={addOn.id} className="flex justify-between text-sm">
-                              <span className="text-[var(--text-secondary)]">{addOnData?.label}</span>
-                              <span className="text-white font-medium">
-                                ${addOn.price.toLocaleString()}
-                              </span>
-                            </div>
-                          );
-                        })}
-                        <div className="flex justify-between pt-2 border-t border-[var(--border-subtle)]">
-                          <span className="text-[var(--text-secondary)] font-medium">Add-ons Total</span>
-                          <span className="text-white font-medium">${store.addOnsTotal.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    )}
-                  </SummarySection>
-
-                  {/* One-time Subtotals */}
-                  <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[var(--text-secondary)]">One-Time Subtotal</span>
-                      <span className="text-white">${store.oneTimeSubtotal.toLocaleString()}</span>
-                    </div>
-
-                    {/* Timeline */}
-                    <SummarySection title="Timeline" icon={<Clock className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={12}>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {timelinePremiumPercent > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">
-                            +{timelinePremiumPercent}% (${store.timelinePremium.toLocaleString()})
-                          </span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No premium</span>
-                        )}
-                      </div>
-                    </SummarySection>
-
-                    <div className="flex justify-between pt-2 border-t border-[var(--accent-purple)]/30">
-                      <span className="text-white font-bold">ONE-TIME TOTAL</span>
-                      <span className="text-xl font-bold gradient-text">${store.oneTimeTotal.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* MONTHLY COSTS Section */}
-                <div className="p-4 bg-[var(--bg-card)] rounded-lg border border-[var(--accent-pink)]/30">
-                  <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-                    <RefreshCw className="w-5 h-5 text-[var(--accent-pink)]" />
-                    MONTHLY COSTS
-                  </h3>
-
-                  <SummarySection title="Ongoing Retainer" icon={<RefreshCw className="w-5 h-5 text-[var(--accent-pink)]" />} stepNumber={10}>
+                  <SummarySection title="Messaging Framework" icon={<MessageSquare className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={2}>
                     <div className="flex justify-between">
-                      <span className="text-[var(--text-secondary)]">{retainerLabel}</span>
-                      {formatMonthlyPrice(store.retainerPrice, retainerStartsAt)}
+                      <span className="text-[var(--text-secondary)]">{messagingLabel}</span>
+                      {formatPrice(store.messagingPrice, messagingStartsAt)}
                     </div>
                   </SummarySection>
 
-                  <div className="flex justify-between mt-4 pt-4 border-t border-[var(--accent-pink)]/30">
-                    <span className="text-white font-bold">MONTHLY TOTAL</span>
-                    <span className="text-xl font-bold text-[var(--accent-pink)]">
-                      ${store.monthlyTotal.toLocaleString()}/mo
-                    </span>
-                  </div>
+                  <SummarySection title="Brand Voice & Tone" icon={<Mic className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={3}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{voiceLabel}</span>
+                      {formatPrice(store.voicePrice, voiceStartsAt)}
+                    </div>
+                  </SummarySection>
                 </div>
 
-                {/* Investment Summary Box */}
-                <div className="p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
-                  {store.hasCustomQuote ? (
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-white font-semibold">Custom Quote Required</p>
-                        <p className="text-sm text-[var(--text-secondary)] mt-1">
-                          Some selections require custom pricing. Submit your configuration for a detailed quote.
-                        </p>
-                      </div>
+                {/* Copy Production */}
+                <div className="space-y-3 mb-4">
+                  <h4 className="text-sm font-medium text-[var(--accent-purple)] uppercase tracking-wide">
+                    Copy Production
+                  </h4>
+
+                  <SummarySection title="Website Copy" icon={<Globe className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={4}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{websiteLabel}</span>
+                      {formatPrice(store.websitePrice, websiteStartsAt)}
                     </div>
+                  </SummarySection>
+
+                  <SummarySection title="Marketing & Advertising Copy" icon={<Megaphone className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={5}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{marketingLabel}</span>
+                      {formatPrice(store.marketingPrice, marketingStartsAt)}
+                    </div>
+                  </SummarySection>
+
+                  <SummarySection title="Sales Enablement Copy" icon={<Target className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={6}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{salesLabel}</span>
+                      {formatPrice(store.salesPrice, salesStartsAt)}
+                    </div>
+                  </SummarySection>
+
+                  <SummarySection title="Product Copy" icon={<ShoppingBag className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={7}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{productLabel}</span>
+                      {formatPrice(store.productPrice, productStartsAt)}
+                    </div>
+                  </SummarySection>
+
+                  <SummarySection title="Content Writing" icon={<BookOpen className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={8}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{contentLabel}</span>
+                      {formatPrice(store.contentPrice, contentStartsAt)}
+                    </div>
+                  </SummarySection>
+
+                  <SummarySection title="UX Writing" icon={<Layout className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={9}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{uxLabel}</span>
+                      {formatPrice(store.uxPrice, uxStartsAt)}
+                    </div>
+                  </SummarySection>
+                </div>
+
+                {/* Add-ons */}
+                <SummarySection title="Add-on Services" icon={<Sparkles className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={11}>
+                  {store.selectedAddOns.length === 0 ? (
+                    <p className="text-[var(--text-muted)] text-sm">No add-ons selected</p>
                   ) : (
-                    <div className="space-y-4">
-                      <h4 className="text-white font-semibold text-center">Investment Summary</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-[var(--bg-secondary)] rounded-lg">
-                          <p className="text-xs text-[var(--text-muted)] uppercase mb-1">One-Time</p>
-                          <p className="text-2xl font-bold gradient-text">${store.oneTimeTotal.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center p-3 bg-[var(--bg-secondary)] rounded-lg">
-                          <p className="text-xs text-[var(--text-muted)] uppercase mb-1">Monthly</p>
-                          <p className="text-2xl font-bold text-[var(--accent-pink)]">${store.monthlyTotal.toLocaleString()}/mo</p>
-                        </div>
+                    <div className="space-y-2">
+                      {store.selectedAddOns.map((addOn) => {
+                        const addOnData = addOnServices.find((a) => a.id === addOn.id);
+                        return (
+                          <div key={addOn.id} className="flex justify-between text-sm">
+                            <span className="text-[var(--text-secondary)]">{addOnData?.label}</span>
+                            <span className="text-white font-medium">
+                              ${addOn.price.toLocaleString()}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      <div className="flex justify-between pt-2 border-t border-[var(--border-subtle)]">
+                        <span className="text-[var(--text-secondary)] font-medium">Add-ons Total</span>
+                        <span className="text-white font-medium">${store.addOnsTotal.toLocaleString()}</span>
                       </div>
                     </div>
                   )}
+                </SummarySection>
+
+                {/* One-time Subtotals */}
+                <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[var(--text-secondary)]">One-Time Subtotal</span>
+                    <span className="text-white">${store.oneTimeSubtotal.toLocaleString()}</span>
+                  </div>
+
+                  {/* Timeline */}
+                  <SummarySection title="Timeline" icon={<Clock className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={12}>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {timelinePremiumPercent > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">
+                          +{timelinePremiumPercent}% (${store.timelinePremium.toLocaleString()})
+                        </span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No premium</span>
+                      )}
+                    </div>
+                  </SummarySection>
+
+                  <div className="flex justify-between pt-2 border-t border-[var(--accent-purple)]/30">
+                    <span className="text-white font-bold">ONE-TIME TOTAL</span>
+                    <span className="text-xl font-bold gradient-text">${store.oneTimeTotal.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+              {/* MONTHLY COSTS Section */}
+              <div className="p-4 bg-[var(--bg-card)] rounded-lg border border-[var(--accent-pink)]/30">
+                <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-[var(--accent-pink)]" />
+                  MONTHLY COSTS
+                </h3>
+
+                <SummarySection title="Ongoing Retainer" icon={<RefreshCw className="w-5 h-5 text-[var(--accent-pink)]" />} stepNumber={10}>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">{retainerLabel}</span>
+                    {formatMonthlyPrice(store.retainerPrice, retainerStartsAt)}
+                  </div>
+                </SummarySection>
+
+                <div className="flex justify-between mt-4 pt-4 border-t border-[var(--accent-pink)]/30">
+                  <span className="text-white font-bold">MONTHLY TOTAL</span>
+                  <span className="text-xl font-bold text-[var(--accent-pink)]">
+                    ${store.monthlyTotal.toLocaleString()}/mo
+                  </span>
+                </div>
+              </div>
+
+              {/* Investment Summary Box */}
+              <div className="p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
+                {store.hasCustomQuote ? (
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-white font-semibold">Custom Quote Required</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">
+                        Some selections require custom pricing. Submit your configuration for a detailed quote.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h4 className="text-white font-semibold text-center">Investment Summary</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-[var(--bg-secondary)] rounded-lg">
+                        <p className="text-xs text-[var(--text-muted)] uppercase mb-1">One-Time</p>
+                        <p className="text-2xl font-bold gradient-text">${store.oneTimeTotal.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center p-3 bg-[var(--bg-secondary)] rounded-lg">
+                        <p className="text-xs text-[var(--text-muted)] uppercase mb-1">Monthly</p>
+                        <p className="text-2xl font-bold text-[var(--accent-pink)]">${store.monthlyTotal.toLocaleString()}/mo</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Collapsed Totals */}
         {expandedCard !== 'messaging-copywriting' && (
@@ -470,59 +461,51 @@ export default function Step13Summary({ showQuoteForm = false, onCloseQuoteForm 
             )}
           </button>
 
-          <AnimatePresence>
-            {showAddServices && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
-                  {availableServices.map((serviceType) => (
-                    <Link
-                      key={serviceType}
-                      href={serviceMetadata[serviceType].builderPath}
-                      className="flex items-center justify-between p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg hover:border-[var(--accent-purple)] transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        {serviceType === 'website' ? (
-                          <Globe className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'app' ? (
-                          <Smartphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'animation' ? (
-                          <Film className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'image' ? (
-                          <Image className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'sound' ? (
-                          <Music className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'paid-media' ? (
-                          <Megaphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'social-media' ? (
-                          <Share2 className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'email-marketing' ? (
-                          <Mail className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'visual-identity' ? (
-                          <Palette className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'brand-applications' ? (
-                          <Briefcase className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'brand-strategy' ? (
-                          <Target className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'content-strategy' ? (
-                          <Layers className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : (
-                          <FileText className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        )}
-                        <span className="text-white text-sm font-medium">{serviceMetadata[serviceType].label}</span>
-                      </div>
-                      <Plus className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                    </Link>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className={`grid transition-all duration-300 ease-in-out ${showAddServices ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="grid gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                {availableServices.map((serviceType) => (
+                  <Link
+                    key={serviceType}
+                    href={serviceMetadata[serviceType].builderPath}
+                    className="flex items-center justify-between p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg hover:border-[var(--accent-purple)] transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      {serviceType === 'website' ? (
+                        <Globe className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'app' ? (
+                        <Smartphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'animation' ? (
+                        <Film className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'image' ? (
+                        <Image className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'sound' ? (
+                        <Music className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'paid-media' ? (
+                        <Megaphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'social-media' ? (
+                        <Share2 className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'email-marketing' ? (
+                        <Mail className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'visual-identity' ? (
+                        <Palette className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'brand-applications' ? (
+                        <Briefcase className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'brand-strategy' ? (
+                        <Target className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'content-strategy' ? (
+                        <Layers className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : (
+                        <FileText className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      )}
+                      <span className="text-white text-sm font-medium">{serviceMetadata[serviceType].label}</span>
+                    </div>
+                    <Plus className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,9 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useSocialMediaBuilderStore } from '@/hooks/useSocialMediaBuilderStore';
-import { useUnifiedQuoteStore, serviceMetadata, WebsiteConfig, AppConfig, AnimationConfig, ImageConfig, SoundConfig, PaidMediaConfig, EmailMarketingConfig, VisualIdentityConfig } from '@/hooks/useUnifiedQuoteStore';
+import { useUnifiedQuoteStore, serviceMetadata, WebsiteConfig, AppConfig, AnimationConfig, ImageConfig, SoundConfig, PaidMediaConfig, EmailMarketingConfig, VisualIdentityConfig, AIReceptionistConfig } from '@/hooks/useUnifiedQuoteStore';
+import {
+  basePackages as aiReceptionistPackages,
+  phoneNumberTypeOptions,
+  additionalLinesOptions,
+  coverageAreaOptions,
+  monthlyMinutesOptions,
+  availabilityOptions,
+  callTransferOptions,
+  voicemailOptions,
+  maxCallDurationOptions,
+  languageOptions,
+  voiceStyleOptions,
+  knowledgeBaseSizeOptions,
+  conversationComplexityOptions,
+  personalityOptions,
+  leadCaptureOptions,
+  calendarOptions,
+  notificationOptions,
+  additionalIntegrationOptions,
+  transcriptsOptions,
+  aiSummariesOptions,
+  analyticsLevelOptions,
+  reportingFrequencyOptions,
+  onboardingTypeOptions,
+  knowledgeUpdatesOptions,
+  supportLevelOptions,
+} from '@/data/aiReceptionistBuilder';
 import {
   managementGoalOptions,
   platformOptions,
@@ -71,12 +97,13 @@ import {
   Calendar,
   TrendingUp,
   Palette,
+  Phone,
 } from 'lucide-react';
 import BuilderQuoteForm from '../builder/BuilderQuoteForm';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-type ExpandedCard = 'social-media' | 'website' | 'app' | 'animation' | 'image' | 'sound' | 'paid-media' | 'email-marketing' | 'visual-identity' | null;
+type ExpandedCard = 'social-media' | 'website' | 'app' | 'animation' | 'image' | 'sound' | 'paid-media' | 'email-marketing' | 'visual-identity' | 'ai-receptionist' | null;
 
 interface Step10SummaryProps {
   showQuoteForm?: boolean;
@@ -93,8 +120,11 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
 
   // Save to unified quote on mount
   useEffect(() => {
-    store.saveToUnifiedQuote();
-  }, [store]);
+    // Only save if managementGoal is set (meaning we have a valid configuration)
+    if (store.managementGoal) {
+      store.saveToUnifiedQuote();
+    }
+  }, [store.managementGoal, store.saveToUnifiedQuote]);
 
   // Get labels
   const goalLabel = managementGoalOptions.find((g) => g.id === store.managementGoal)?.label;
@@ -121,22 +151,25 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
     // Get remaining services (excluding current service)
     const remainingServices = configuredServices.filter(s => s.type !== 'social-media');
 
-    // Clear from both builder store and unified quote store
-    store.resetBuilder();
+    // Clear from unified quote store first, then reset builder store
     unifiedStore.clearServiceConfig('social-media');
+    store.resetBuilder();
 
-    // If there are remaining services, navigate to the first one's summary
-    if (remainingServices.length > 0) {
-      const nextService = remainingServices[0];
-      router.push(`${serviceMetadata[nextService.type].builderPath}?summary=true`);
-    } else {
-      // No more services, go to main page
-      router.push('/');
-    }
+    // Wrap navigation in setTimeout to ensure persist middleware has saved the state
+    setTimeout(() => {
+      // If there are remaining services, navigate to the first one's summary
+      if (remainingServices.length > 0) {
+        const nextService = remainingServices[0];
+        router.push(`${serviceMetadata[nextService.type].builderPath}?summary=true`);
+      } else {
+        // No more services, go to main page
+        router.push('/');
+      }
+    }, 100);
   };
 
   const toggleCard = (card: ExpandedCard) => {
-    setExpandedCard(expandedCard === card ? null : card);
+    setExpandedCard(prev => prev === card ? null : card);
   };
 
   // Calculate discount/premium
@@ -222,16 +255,9 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
           </div>
         </div>
 
-        <AnimatePresence>
-          {expandedCard === 'social-media' && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-4 mt-6">
+        <div className={`grid transition-all duration-300 ease-in-out ${expandedCard === 'social-media' ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+          <div className="overflow-hidden">
+            <div className="space-y-4 mt-6">
                 <SummarySection title="Management Goal" icon={<Target className="w-5 h-5 text-[var(--accent-purple)]" />} stepNumber={1}>
                   <p className="text-[var(--text-secondary)]">{goalLabel}</p>
                 </SummarySection>
@@ -357,9 +383,8 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
                   </div>
                 </SummarySection>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
 
         {/* Totals */}
         <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
@@ -443,41 +468,33 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Globe className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Project Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{projectTypeLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Globe className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Project Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Timeline</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {config.rushFee > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No rush fee</span>
-                        )}
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{projectTypeLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Timeline</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {config.rushFee > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No rush fee</span>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -548,41 +565,33 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Smartphone className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">App Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{appTypeLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Smartphone className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">App Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Timeline</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {config.rushFee > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No rush fee</span>
-                        )}
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{appTypeLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Timeline</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {config.rushFee > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No rush fee</span>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -653,41 +662,33 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Film className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Animation Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{animTypeLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Film className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Animation Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Timeline</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {config.rushFee > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No rush fee</span>
-                        )}
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{animTypeLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Timeline</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {config.rushFee > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No rush fee</span>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -750,41 +751,33 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Image className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Image Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{imgTypeLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Image className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Image Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Timeline</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {config.rushFee > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No rush fee</span>
-                        )}
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{imgTypeLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Timeline</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {config.rushFee > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No rush fee</span>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -847,41 +840,33 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Music className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Sound Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{soundTypeLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Music className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Sound Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Timeline</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
-                        {config.rushFee > 0 ? (
-                          <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
-                        ) : (
-                          <span className="text-green-400 font-medium">No rush fee</span>
-                        )}
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{soundTypeLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Timeline</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{timelineLabel}</span>
+                      {config.rushFee > 0 ? (
+                        <span className="text-[var(--accent-orange)] font-medium">+${config.rushFee.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-green-400 font-medium">No rush fee</span>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -944,37 +929,29 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Megaphone className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Campaign Type</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{campaignLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Megaphone className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Campaign Type</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Duration</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{durationLabelPM}</span>
-                        <span className="text-[var(--text-muted)]">{config.durationMonths} months</span>
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{campaignLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Duration</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{durationLabelPM}</span>
+                      <span className="text-[var(--text-muted)]">{config.durationMonths} months</span>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -1049,37 +1026,29 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Mail className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Email Goal</h3>
-                      </div>
-                      <p className="text-[var(--text-secondary)]">{emailGoalLabel}</p>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Mail className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Email Goal</h3>
                     </div>
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Duration</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">{durationLabelEM}</span>
-                        <span className="text-[var(--text-muted)]">{config.durationMonths} months</span>
-                      </div>
+                    <p className="text-[var(--text-secondary)]">{emailGoalLabel}</p>
+                  </div>
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Duration</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{durationLabelEM}</span>
+                      <span className="text-[var(--text-muted)]">{config.durationMonths} months</span>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -1152,30 +1121,22 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
               </div>
             </div>
 
-            <AnimatePresence>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-4 mt-6">
-                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Palette className="w-5 h-5 text-[var(--accent-purple)]" />
-                        <h3 className="font-medium text-white">Total Investment</h3>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[var(--text-secondary)]">One-time project fee</span>
-                        <span className="text-white font-medium">${config.totalInvestment.toLocaleString()}</span>
-                      </div>
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Palette className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Total Investment</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">One-time project fee</span>
+                      <span className="text-white font-medium">${config.totalInvestment.toLocaleString()}</span>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
               {config.hasCustomQuote ? (
@@ -1188,6 +1149,363 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
                   <span className="text-white font-semibold">One-time Total</span>
                   <span className="text-2xl font-bold gradient-text">${config.totalInvestment.toLocaleString()}</span>
                 </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Other Configured Services - AI Receptionist */}
+      {otherServices.filter(s => s.type === 'ai-receptionist').map((service) => {
+        const isOpen = expandedCard === 'ai-receptionist';
+        const config = service.config as AIReceptionistConfig;
+        const packageLabel = aiReceptionistPackages.find(p => p.id === config.basePackage)?.name;
+
+        return (
+          <div key={service.type} className="card p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--accent-purple)] to-[var(--accent-pink)] flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-white font-serif">AI Receptionist Quote Summary</h2>
+                  <p className="text-[var(--text-secondary)] text-sm">{packageLabel}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Link
+                  href={serviceMetadata[service.type].builderPath}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--accent-purple)] transition-all"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </Link>
+                <button
+                  onClick={() => unifiedStore.clearServiceConfig(service.type)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Clear
+                </button>
+                <button
+                  onClick={() => toggleCard('ai-receptionist')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--accent-purple)] transition-all"
+                >
+                  {isOpen ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Details
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="space-y-4 mt-6">
+                  {/* Package Section */}
+                  <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Phone className="w-5 h-5 text-[var(--accent-purple)]" />
+                      <h3 className="font-medium text-white">Package</h3>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">{packageLabel}</span>
+                      <span className="text-[var(--accent-pink)]">
+                        ${aiReceptionistPackages.find(p => p.id === config.basePackage)?.displayPrice || 0}/mo base
+                      </span>
+                    </div>
+                  </div>
+
+                    {/* Phone Setup Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Phone className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">Phone Setup</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {phoneNumberTypeOptions.find(o => o.id === config.phoneNumberType)?.label || 'Local Number'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${phoneNumberTypeOptions.find(o => o.id === config.phoneNumberType)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {additionalLinesOptions.find(o => o.id === config.additionalLines)?.label || '1 line'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${additionalLinesOptions.find(o => o.id === config.additionalLines)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {coverageAreaOptions.find(o => o.id === config.coverageArea)?.label || 'Single Region (US)'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${coverageAreaOptions.find(o => o.id === config.coverageArea)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Call Handling Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Lightbulb className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">Call Handling</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {monthlyMinutesOptions.find(o => o.id === config.monthlyMinutes)?.label || '100 minutes'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${monthlyMinutesOptions.find(o => o.id === config.monthlyMinutes)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {availabilityOptions.find(o => o.id === config.availability)?.label || 'Business Hours'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${availabilityOptions.find(o => o.id === config.availability)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {callTransferOptions.find(o => o.id === config.callTransfer)?.label || 'No Transfers'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${callTransferOptions.find(o => o.id === config.callTransfer)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {voicemailOptions.find(o => o.id === config.voicemailType)?.label || 'Basic Voicemail'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${voicemailOptions.find(o => o.id === config.voicemailType)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {maxCallDurationOptions.find(o => o.id === config.maxCallDuration)?.label || '5 minutes per call'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${maxCallDurationOptions.find(o => o.id === config.maxCallDuration)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI Capabilities Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Zap className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">AI Capabilities</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {languageOptions.find(o => o.id === config.language)?.label || 'English Only'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${languageOptions.find(o => o.id === config.language)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {voiceStyleOptions.find(o => o.id === config.voiceStyle)?.label || 'Standard Professional'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${voiceStyleOptions.find(o => o.id === config.voiceStyle)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {knowledgeBaseSizeOptions.find(o => o.id === config.knowledgeBaseSize)?.label || 'Basic (up to 25 FAQs)'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${knowledgeBaseSizeOptions.find(o => o.id === config.knowledgeBaseSize)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {conversationComplexityOptions.find(o => o.id === config.conversationComplexity)?.label || 'Simple Q&A'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${conversationComplexityOptions.find(o => o.id === config.conversationComplexity)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {personalityOptions.find(o => o.id === config.personality)?.label || 'Professional & Friendly'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${personalityOptions.find(o => o.id === config.personality)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Integrations Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Globe className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">Integrations</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            Lead Capture: {leadCaptureOptions.find(o => o.id === config.leadCapture)?.label || 'Google Sheets'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${leadCaptureOptions.find(o => o.id === config.leadCapture)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            Calendar: {calendarOptions.find(o => o.id === config.calendar)?.label || 'None'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${calendarOptions.find(o => o.id === config.calendar)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        {config.notifications && config.notifications.length > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-[var(--text-secondary)]">
+                              Notifications: {config.notifications.map(n => notificationOptions.find(o => o.id === n)?.label).filter(Boolean).join(', ')}
+                            </span>
+                            <span className="text-[var(--accent-pink)]">
+                              ${config.notifications.reduce((sum, n) => sum + (notificationOptions.find(o => o.id === n)?.monthlyPrice || 0), 0)}/mo
+                            </span>
+                          </div>
+                        )}
+                        {config.additionalIntegrations && config.additionalIntegrations.length > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-[var(--text-secondary)]">
+                              Additional: {config.additionalIntegrations.map(i => additionalIntegrationOptions.find(o => o.id === i)?.label).filter(Boolean).join(', ')}
+                            </span>
+                            <span className="text-[var(--accent-pink)]">
+                              ${config.additionalIntegrations.reduce((sum, i) => sum + (additionalIntegrationOptions.find(o => o.id === i)?.monthlyPrice || 0), 0)}/mo
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Reporting Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <BarChart3 className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">Reporting & Analytics</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {transcriptsOptions.find(o => o.id === config.transcripts)?.label || 'No Transcripts'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${transcriptsOptions.find(o => o.id === config.transcripts)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {aiSummariesOptions.find(o => o.id === config.aiSummaries)?.label || 'No Summaries'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${aiSummariesOptions.find(o => o.id === config.aiSummaries)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {analyticsLevelOptions.find(o => o.id === config.analyticsLevel)?.label || 'Basic Metrics'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${analyticsLevelOptions.find(o => o.id === config.analyticsLevel)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {reportingFrequencyOptions.find(o => o.id === config.reportingFrequency)?.label || 'Self-Serve (Dashboard)'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${reportingFrequencyOptions.find(o => o.id === config.reportingFrequency)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Support Section */}
+                    <div className="p-4 bg-[var(--bg-secondary)] rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="w-5 h-5 text-[var(--accent-purple)]" />
+                        <h3 className="font-medium text-white">Support & Onboarding</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {onboardingTypeOptions.find(o => o.id === config.onboardingType)?.label || 'Self-Serve'}
+                          </span>
+                          <span className="text-white">
+                            ${onboardingTypeOptions.find(o => o.id === config.onboardingType)?.oneTimePrice || 0} one-time
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {knowledgeUpdatesOptions.find(o => o.id === config.knowledgeUpdates)?.label || 'Self-Serve'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${knowledgeUpdatesOptions.find(o => o.id === config.knowledgeUpdates)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-[var(--text-secondary)]">
+                            {supportLevelOptions.find(o => o.id === config.supportLevel)?.label || 'Email Support'}
+                          </span>
+                          <span className="text-[var(--accent-pink)]">
+                            ${supportLevelOptions.find(o => o.id === config.supportLevel)?.monthlyPrice || 0}/mo
+                          </span>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-gradient-to-r from-[var(--accent-purple)]/20 to-[var(--accent-pink)]/20 border border-[var(--accent-purple)]/30 rounded-lg">
+              {config.hasCustomQuote ? (
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-[var(--accent-orange)] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-white font-semibold">Custom Quote Required</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-semibold">One-time Setup</span>
+                    <span className="text-2xl font-bold gradient-text">
+                      ${config.oneTimeTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  {config.monthlyTotal > 0 && (
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-[var(--border-subtle)]">
+                      <span className="text-white font-semibold">Monthly Total</span>
+                      <span className="text-lg font-semibold text-[var(--accent-pink)]">${config.monthlyTotal.toFixed(2)}/mo</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1217,53 +1535,47 @@ export default function Step10Summary({ showQuoteForm = false, onCloseQuoteForm 
             )}
           </button>
 
-          <AnimatePresence>
-            {showAddServices && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
-                  {availableServices.map((serviceType) => (
-                    <Link
-                      key={serviceType}
-                      href={serviceMetadata[serviceType].builderPath}
-                      className="flex items-center justify-between p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg hover:border-[var(--accent-purple)] transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        {serviceType === 'website' ? (
-                          <Globe className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'app' ? (
-                          <Smartphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'animation' ? (
-                          <Film className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'image' ? (
-                          <Image className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'sound' ? (
-                          <Music className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'paid-media' ? (
-                          <Megaphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'email-marketing' ? (
-                          <Mail className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'visual-identity' ? (
-                          <Palette className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : serviceType === 'brand-strategy' ? (
-                          <Target className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        ) : (
-                          <Share2 className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                        )}
-                        <span className="text-white text-sm font-medium">{serviceMetadata[serviceType].label}</span>
-                      </div>
-                      <Plus className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
-                    </Link>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className={`grid transition-all duration-300 ease-in-out ${showAddServices ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="grid gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                {availableServices.map((serviceType) => (
+                  <Link
+                    key={serviceType}
+                    href={serviceMetadata[serviceType].builderPath}
+                    className="flex items-center justify-between p-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg hover:border-[var(--accent-purple)] transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      {serviceType === 'website' ? (
+                        <Globe className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'app' ? (
+                        <Smartphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'animation' ? (
+                        <Film className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'image' ? (
+                        <Image className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'sound' ? (
+                        <Music className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'paid-media' ? (
+                        <Megaphone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'email-marketing' ? (
+                        <Mail className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'visual-identity' ? (
+                        <Palette className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'brand-strategy' ? (
+                        <Target className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : serviceType === 'ai-receptionist' ? (
+                        <Phone className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      ) : (
+                        <Share2 className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                      )}
+                      <span className="text-white text-sm font-medium">{serviceMetadata[serviceType].label}</span>
+                    </div>
+                    <Plus className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-purple)]" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

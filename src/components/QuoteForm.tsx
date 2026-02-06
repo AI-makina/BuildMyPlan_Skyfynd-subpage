@@ -6,8 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlanStore } from '@/hooks/usePlanStore';
-import { getServiceById } from '@/data/services';
 import { X, Send, CheckCircle, User, Mail, Building, Phone, MessageSquare } from 'lucide-react';
+import { buildTierQuotePayload } from '@/lib/services/buildQuotePayload';
+import { submitQuote } from '@/lib/services/quoteSubmission';
 
 const quoteSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -27,8 +28,9 @@ interface QuoteFormProps {
 export default function QuoteForm({ isOpen, onClose }: QuoteFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { items, total, discountPercentage, clearPlan } = usePlanStore();
+  const { items, subtotal, total, discountPercentage, clearPlan } = usePlanStore();
 
   const {
     register,
@@ -41,32 +43,22 @@ export default function QuoteForm({ isOpen, onClose }: QuoteFormProps) {
 
   const onSubmit = async (data: QuoteFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Build the quote summary
-    const quoteSummary = {
-      customer: data,
-      plan: items.map(item => {
-        const service = getServiceById(item.serviceId);
-        return {
-          service: service?.name,
-          tier: item.tierId,
-          addOns: item.addOns,
-          subtotal: item.subtotal,
-        };
-      }),
-      discountPercentage,
-      total,
-      submittedAt: new Date().toISOString(),
-    };
+    try {
+      const payload = buildTierQuotePayload(data);
+      const result = await submitQuote(payload);
 
-    // Mock submission - log to console
-    console.log('Quote Request Submitted:', quoteSummary);
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        setSubmitError(result.message);
+      }
+    } catch {
+      setSubmitError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -238,6 +230,13 @@ export default function QuoteForm({ isOpen, onClose }: QuoteFormProps) {
                         className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg text-white placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-purple)] transition-all resize-none"
                       />
                     </div>
+
+                    {/* Error Message */}
+                    {submitError && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                        {submitError}
+                      </div>
+                    )}
 
                     {/* Submit */}
                     <motion.button
